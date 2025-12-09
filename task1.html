@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Metrics & Vitals Dashboard</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #eef2f3;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 900px;
+        background: white;
+        margin: 25px auto;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+    button {
+        padding: 10px 15px;
+        background: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: #1e7e34;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+
+    table th, table td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+    }
+
+    canvas {
+        margin-top: 30px;
+        width: 100%;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Health Metrics & Vitals Tracking Dashboard</h2>
+
+    <input type="number" id="heartRate" placeholder="Heart Rate (bpm)">
+    <input type="text" id="bp" placeholder="Blood Pressure (e.g., 120/80)">
+    <input type="number" id="temp" placeholder="Body Temperature (°C)">
+    <input type="number" id="oxygen" placeholder="Oxygen Level (%)">
+
+    <button onclick="saveVitals()">Save Vitals</button>
+
+    <h2>Vitals History</h2>
+    <table id="vitalsTable">
+        <tr>
+            <th>Date</th>
+            <th>Heart Rate</th>
+            <th>Blood Pressure</th>
+            <th>Temperature</th>
+            <th>Oxygen</th>
+        </tr>
+    </table>
+
+    <h2>Vitals Graph</h2>
+    <canvas id="vitalsChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+function saveVitals() {
+    let vitals = {
+        date: new Date().toLocaleString(),
+        heart: document.getElementById("heartRate").value,
+        bp: document.getElementById("bp").value,
+        temp: document.getElementById("temp").value,
+        oxygen: document.getElementById("oxygen").value
+    };
+
+    let list = JSON.parse(localStorage.getItem("vitals")) || [];
+    list.push(vitals);
+    localStorage.setItem("vitals", JSON.stringify(list));
+
+    alert("Vitals Saved!");
+    displayVitals();
+    updateChart();
+}
+
+function displayVitals() {
+    let list = JSON.parse(localStorage.getItem("vitals")) || [];
+    let table = document.getElementById("vitalsTable");
+
+    table.innerHTML = `
+        <tr>
+            <th>Date</th>
+            <th>Heart Rate</th>
+            <th>Blood Pressure</th>
+            <th>Temperature</th</th>
+            <th>Oxygen</th>
+        </tr>
+    `;
+
+    list.forEach(v => {
+        table.innerHTML += `
+            <tr>
+                <td>${v.date}</td>
+                <td>${v.heart}</td>
+                <td>${v.bp}</td>
+                <td>${v.temp}</td>
+                <td>${v.oxygen}</td>
+            </tr>
+        `;
+    });
+}
+
+let chart;
+
+function updateChart() {
+    let list = JSON.parse(localStorage.getItem("vitals")) || [];
+
+    let labels = list.map(v => v.date);
+    let heartData = list.map(v => v.heart);
+    let tempData = list.map(v => v.temp);
+    let oxygenData = list.map(v => v.oxygen);
+
+    if (chart) chart.destroy();
+
+    let ctx = document.getElementById("vitalsChart");
+
+    chart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Heart Rate (bpm)",
+                    data: heartData,
+                    borderWidth: 2,
+                    fill: false
+                },
+                {
+                    label: "Temperature (°C)",
+                    data: tempData,
+                    borderWidth: 2,
+                    fill: false
+                },
+                {
+                    label: "Oxygen Level (%)",
+                    data: oxygenData,
+                    borderWidth: 2,
+                    fill: false
+                }
+            ]
+        }
+    });
+}
+
+displayVitals();
+updateChart();
+
+</script>
+
+</body>
+</html>
