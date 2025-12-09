@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Nutrition & Calorie Tracking System</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f2f6f7;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 900px;
+        background: white;
+        margin: 25px auto;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+    button {
+        padding: 10px 15px;
+        background: #ff8c00;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: #e67a00;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+
+    table th, table td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: center;
+    }
+
+    .summary {
+        margin-top: 20px;
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Smart Nutrition & Calorie Tracker</h2>
+
+    <input type="text" id="food" placeholder="Food Name (e.g., Apple)">
+    <input type="number" id="cal" placeholder="Calories">
+    <input type="number" id="protein" placeholder="Protein (g)">
+    <input type="number" id="carbs" placeholder="Carbs (g)">
+    <input type="number" id="fat" placeholder="Fat (g)">
+
+    <button onclick="addFood()">Add Food</button>
+
+    <h2>Today's Meals</h2>
+    <table id="mealTable">
+        <tr>
+            <th>Food</th>
+            <th>Calories</th>
+            <th>Protein</th>
+            <th>Carbs</th>
+            <th>Fat</th>
+        </tr>
+    </table>
+
+    <div class="summary">
+        <h3>Daily Summary</h3>
+        <p id="sumCal"></p>
+        <p id="sumProtein"></p>
+        <p id="sumCarbs"></p>
+        <p id="sumFat"></p>
+    </div>
+
+    <canvas id="nutritionChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+function addFood() {
+    let item = {
+        food: document.getElementById("food").value,
+        cal: Number(document.getElementById("cal").value),
+        protein: Number(document.getElementById("protein").value),
+        carbs: Number(document.getElementById("carbs").value),
+        fat: Number(document.getElementById("fat").value)
+    };
+
+    let list = JSON.parse(localStorage.getItem("meals")) || [];
+    list.push(item);
+    localStorage.setItem("meals", JSON.stringify(list));
+
+    displayMeals();
+    updateSummary();
+    updateChart();
+}
+
+function displayMeals() {
+    let list = JSON.parse(localStorage.getItem("meals")) || [];
+    let table = document.getElementById("mealTable");
+
+    table.innerHTML = `
+        <tr>
+            <th>Food</th>
+            <th>Calories</th>
+            <th>Protein</th>
+            <th>Carbs</th>
+            <th>Fat</th>
+        </tr>
+    `;
+
+    list.forEach(m => {
+        table.innerHTML += `
+        <tr>
+            <td>${m.food}</td>
+            <td>${m.cal}</td>
+            <td>${m.protein}</td>
+            <td>${m.carbs}</td>
+            <td>${m.fat}</td>
+        </tr>`;
+    });
+}
+
+function updateSummary() {
+    let list = JSON.parse(localStorage.getItem("meals")) || [];
+
+    let totalCal = list.reduce((a,b)=>a+b.cal,0);
+    let totalProtein = list.reduce((a,b)=>a+b.protein,0);
+    let totalCarbs = list.reduce((a,b)=>a+b.carbs,0);
+    let totalFat = list.reduce((a,b)=>a+b.fat,0);
+
+    document.getElementById("sumCal").innerText = "Total Calories: " + totalCal;
+    document.getElementById("sumProtein").innerText = "Total Protein: " + totalProtein + " g";
+    document.getElementById("sumCarbs").innerText = "Total Carbs: " + totalCarbs + " g";
+    document.getElementById("sumFat").innerText = "Total Fat: " + totalFat + " g";
+}
+
+let chart;
+function updateChart() {
+    let list = JSON.parse(localStorage.getItem("meals")) || [];
+
+    let totalProtein = list.reduce((a,b)=>a+b.protein,0);
+    let totalCarbs = list.reduce((a,b)=>a+b.carbs,0);
+    let totalFat = list.reduce((a,b)=>a+b.fat,0);
+
+    if (chart) chart.destroy();
+
+    let ctx = document.getElementById("nutritionChart");
+
+    chart = new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels: ["Protein (g)", "Carbs (g)", "Fat (g)"],
+            datasets: [{
+                data: [totalProtein, totalCarbs, totalFat],
+                borderWidth: 1
+            }]
+        }
+    });
+}
+
+displayMeals();
+updateSummary();
+updateChart();
+
+</script>
+
+</body>
+</html>
