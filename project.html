@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Blog Platform</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 900px;
+        margin: 20px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px #ccc;
+    }
+
+    h2 {
+        text-align: center;
+        color: #444;
+    }
+
+    input, textarea, select {
+        width: 100%;
+        margin: 10px 0;
+        padding: 8px;
+        border: 1px solid #bbb;
+        border-radius: 5px;
+    }
+
+    button {
+        background: #008CBA;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #006f8e;
+    }
+
+    .post {
+        background: #fafafa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        border: 1px solid #ddd;
+    }
+
+    .img-preview {
+        width: 100%;
+        max-height: 200px;
+        object-fit: cover;
+        border-radius: 6px;
+        margin-top: 10px;
+    }
+
+</style>
+</head>
+
+<body>
+
+<div class="container" id="authSection">
+    <h2>User Registration / Login</h2>
+
+    <input type="text" id="regName" placeholder="Enter Name">
+    <input type="email" id="regEmail" placeholder="Enter Email">
+    <input type="password" id="regPass" placeholder="Enter Password">
+
+    <button onclick="register()">Register</button>
+
+    <hr>
+
+    <input type="email" id="loginEmail" placeholder="Login Email">
+    <input type="password" id="loginPass" placeholder="Login Password">
+
+    <button onclick="login()">Login</button>
+</div>
+
+
+<div class="container" id="blogSection" style="display:none;">
+    <h2>Create Blog Post</h2>
+
+    <input type="text" id="title" placeholder="Post Title">
+    <textarea id="content" rows="4" placeholder="Write your post here..."></textarea>
+
+    <input type="text" id="category" placeholder="Category">
+    <input type="text" id="tags" placeholder="Tags (comma separated)">
+    <input type="file" id="image">
+
+    <button onclick="createPost()">Publish Post</button>
+
+    <h2>All Blog Posts</h2>
+    <div id="postList"></div>
+</div>
+
+<script>
+
+// ---------------------- USER REGISTRATION -------------------------
+function register() {
+    let user = {
+        name: document.getElementById("regName").value,
+        email: document.getElementById("regEmail").value,
+        pass: document.getElementById("regPass").value
+    };
+
+    localStorage.setItem("user", JSON.stringify(user));
+    alert("Registration Successful!");
+}
+
+// ---------------------- USER LOGIN -------------------------
+function login() {
+    let savedUser = JSON.parse(localStorage.getItem("user"));
+
+    let email = document.getElementById("loginEmail").value;
+    let pass = document.getElementById("loginPass").value;
+
+    if (savedUser && savedUser.email === email && savedUser.pass === pass) {
+        alert("Login Successful!");
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("blogSection").style.display = "block";
+    } else {
+        alert("Invalid Login Details!");
+    }
+}
+
+// ---------------------- CREATE POST -------------------------
+function createPost() {
+    let title = document.getElementById("title").value;
+    let content = document.getElementById("content").value;
+    let category = document.getElementById("category").value;
+    let tags = document.getElementById("tags").value;
+    let imageFile = document.getElementById("image").files[0];
+
+    let reader = new FileReader();
+    reader.onload = function () {
+
+        let post = {
+            id: Date.now(),
+            title,
+            content,
+            category,
+            tags,
+            image: reader.result
+        };
+
+        let posts = JSON.parse(localStorage.getItem("posts")) || [];
+        posts.push(post);
+
+        localStorage.setItem("posts", JSON.stringify(posts));
+
+        displayPosts();
+    };
+
+    if (imageFile) reader.readAsDataURL(imageFile);
+    else {
+        let post = {
+            id: Date.now(),
+            title,
+            content,
+            category,
+            tags,
+            image: ""
+        };
+        let posts = JSON.parse(localStorage.getItem("posts")) || [];
+        posts.push(post);
+        localStorage.setItem("posts", JSON.stringify(posts));
+        displayPosts();
+    }
+}
+
+// ---------------------- SHOW POSTS -------------------------
+function displayPosts() {
+    let posts = JSON.parse(localStorage.getItem("posts")) || [];
+    let list = document.getElementById("postList");
+    list.innerHTML = "";
+
+    posts.forEach(p => {
+        list.innerHTML += `
+            <div class="post">
+                <h3>${p.title}</h3>
+                <p>${p.content}</p>
+                <p><b>Category:</b> ${p.category}</p>
+                <p><b>Tags:</b> ${p.tags}</p>
+                ${p.image ? `<img src="${p.image}" class="img-preview">` : ""}
+                <br><br>
+                <button onclick="deletePost(${p.id})">Delete</button>
+            </div>
+        `;
+    });
+}
+
+// ---------------------- DELETE POST -------------------------
+function deletePost(id) {
+    let posts = JSON.parse(localStorage.getItem("posts")) || [];
+    posts = posts.filter(p => p.id !== id);
+    localStorage.setItem("posts", JSON.stringify(posts));
+    displayPosts();
+}
+
+displayPosts();
+
+</script>
+
+</body>
+</html>
